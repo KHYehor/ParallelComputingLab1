@@ -21,6 +21,19 @@ public class Matrix {
         return _Matrix;
     }
 
+    private static double kahanSum(double... fa)
+    {
+        double sum = 0.0;
+        double c = 0.0;
+        for (double f : fa) {
+            double y = f - c;
+            double t = sum + y;
+            c = (t - sum) - y;
+            sum = t;
+        }
+        return sum;
+    }
+
     public synchronized Matrix initWithRandomValues() {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(name));
@@ -28,7 +41,7 @@ public class Matrix {
                 for (int j = 0; j < defaultSize; j++) {
                     double randomValue = 100000000.0 * new Random().nextDouble();
                     _Matrix[i][j] = randomValue;
-                    bw.write(String.format("%.7f", randomValue) + ", ");
+                    bw.write(String.valueOf(randomValue) + ", ");
                 }
                 bw.newLine();
             }
@@ -48,7 +61,7 @@ public class Matrix {
         double[][] inputMatrix = matrix.get_Matrix();
         for (int i = 0; i < defaultSize; i++) {
             for (int j = 0; j < defaultSize; j++) {
-                newMatrix[i][j] = _Matrix[i][j] * inputMatrix[i][j];
+                newMatrix[i][j] = kahanSum(newMatrix[i][j], _Matrix[i][j] * inputMatrix[i][j]);
             }
         }
         _Matrix = newMatrix;
@@ -60,21 +73,7 @@ public class Matrix {
         double[][] inputMatrix = matrix.get_Matrix();
         for (int i = 0; i < defaultSize; i++) {
             for (int j = 0; j < defaultSize; j++) {
-                // Kahan algorithm
-                double sum = 0.0;
-                double errors = 0.0;
-                // Safe add first value
-                double value = _Matrix[i][j] - errors;
-                double temp = sum + value;
-                errors = (temp - sum) - value;
-                sum = temp;
-                // Save add second value
-                value = inputMatrix[i][j] - errors;
-                temp = sum + value;
-                errors = (temp - sum) - value;
-                sum = temp;
-                // Save safe sum
-                newMatrix[i][j] = sum;
+                newMatrix[i][j] = kahanSum(newMatrix[i][j], inputMatrix[i][j]);
             }
         }
         _Matrix = newMatrix;
@@ -92,7 +91,7 @@ public class Matrix {
             BufferedWriter bw = new BufferedWriter(new FileWriter(newName));
             for (int i = 0; i < defaultSize; i++) {
                 for (int j = 0; j < defaultSize; j++) {
-                    bw.write(String.format("%.7f", _Matrix[i][j]) + ", ");
+                    bw.write(String.valueOf(_Matrix[i][j]) + ", ");
                 }
                 bw.newLine();
             }

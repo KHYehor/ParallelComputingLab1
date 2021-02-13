@@ -16,13 +16,26 @@ public class Vector {
         this.name = name;
     }
 
+    private static double kahanSum(double... fa)
+    {
+        double sum = 0.0;
+        double c = 0.0;
+        for (double f : fa) {
+            double y = f - c;
+            double t = sum + y;
+            c = (t - sum) - y;
+            sum = t;
+        }
+        return sum;
+    }
+
     public synchronized Vector initWithRandomValues() {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(name));
             for (int i = 0; i < defaultSize; i++) {
                 double randomValue = 100000000.0 * new Random().nextDouble();
                 _Vector[i] = randomValue;
-                bw.write(String.format("%.7f", randomValue) + ", ");
+                bw.write(String.valueOf(randomValue) + ", ");
             }
             bw.flush();
         } catch (IOException e) {}
@@ -34,7 +47,7 @@ public class Vector {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(newName));
             for (int i = 0; i < defaultSize; i++) {
-                bw.write(String.format("%.7f", _Vector[i]) + ", ");
+                bw.write(String.valueOf(_Vector[i]) + ", ");
             }
             bw.flush();
         } catch (IOException e) {}
@@ -53,7 +66,7 @@ public class Vector {
         double[][] matrixData = matrix.get_Matrix();
         for (int i = 0; i < defaultSize; i++) {
             for (int j = 0; j < defaultSize; j++) {
-                newVector[i] += _Vector[j] * matrixData[j][i];
+                newVector[i] = kahanSum(newVector[i], _Vector[j] * matrixData[j][i]);
             }
         }
         _Vector = newVector;
